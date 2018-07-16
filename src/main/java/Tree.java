@@ -28,6 +28,7 @@ public class Tree {
         root = insertRec(root, value);
     }
 
+    // insert func returns the node after the value got inserted
     private Node insertRec(Node node, int value){
         if (node == null){
             node = new Node(value);
@@ -80,6 +81,13 @@ public class Tree {
         delete(root, value);
     }
 
+    // 1. traverse tree to find node
+    // 2. once find, 3 case:
+    //    i.   no child, make null
+    //    ii.  1 child, make curr node to the child
+    //    iii. 2 child, find the right of smallest value
+    //         once find, make right child to that node and delete the previous found node.
+    // Note: delete func needs to return the entire tree after deleting the value.
     private Node delete(Node node, int value){
         if (node == null){return null;}
         else{
@@ -137,6 +145,9 @@ public class Tree {
         }
 
     }
+
+    // print nth layer's element in the tree
+    // since it only print one layer per call, need super function call this func for each layer.
     private void rowLevelPrint(Node node , int level)
     {
         if (node == null)
@@ -158,6 +169,9 @@ public class Tree {
         }
     }
 
+    // Utilized row level print tree mechanism, for each row, calculate indent and space and print value.
+    // In order to get indent and space, max layer of the tree and current layer of the tree are needed.
+    // In order to calculate current position of the given row, need to record the parent path of the tree.
     @SuppressWarnings("unchecked")
     private void prettyPrint(Node node, int maxLayer, int currLayer, LinkedList<Integer> parent, int lvl){
         if (node != null){
@@ -182,6 +196,11 @@ public class Tree {
             }
         }
     }
+
+    // Calculate the current position by given the parent path
+    // e.g. {left, right, right} -> {0, 1, 1} -> 3
+    // e.g. {left, left, left} -> {0, 0, 0} -> 0
+    // e.g. {right, right, right} -> {1, 1, 1} -> 1 * 2**(3-1) +1 * 2**(2-1) +1 * 2**(1-1) = 7 last element in 3 layer binary tree
     private int getPos(LinkedList<Integer> list){
         int pos = 0;
         for (int i = 0; i < list.size(); i++){
