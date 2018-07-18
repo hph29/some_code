@@ -4,7 +4,7 @@
 public class Main {
 
     public static void main(String[] args) {
-        sortRelated();
+        fibonacciRelated();
     }
 
     private static void sortRelated(){
@@ -72,5 +72,25 @@ public class Main {
         System.out.println();
         System.out.println();
         System.out.println(header);
+    }
+
+    private static void fibonacciRelated(){
+        assert Fibonacci.fibonacci1(0) == 0;
+        assert Fibonacci.fibonacci1(1) == 1;
+        assert Fibonacci.fibonacci1(2) == 1;
+        assert Fibonacci.fibonacci1(3) == 2;
+        assert Fibonacci.fibonacci1(5) == 5;
+
+        assert Fibonacci.fibonacci2(0) == 0;
+        assert Fibonacci.fibonacci2(1) == 1;
+        assert Fibonacci.fibonacci2(2) == 1;
+        assert Fibonacci.fibonacci2(3) == 2;
+        assert Fibonacci.fibonacci2(5) == 5;
+
+        assert Fibonacci.fibonacci3(0) == 0;
+        assert Fibonacci.fibonacci3(1) == 1;
+        assert Fibonacci.fibonacci3(2) == 1;
+        assert Fibonacci.fibonacci3(3) == 2;
+        assert Fibonacci.fibonacci3(5) == 5;
     }
 }
