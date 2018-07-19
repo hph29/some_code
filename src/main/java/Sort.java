@@ -76,6 +76,40 @@ public class Sort {
         return i + 1;
     }
 
+    static void heapSort(int[] arr){
+
+        for (int i = arr.length / 2 - 1; i >= 0; i--){
+            heapify(arr, arr.length, i);
+        }
+
+        for (int i = arr.length - 1; i >=0; i--){
+            int temp = arr[0];
+            arr[0] = arr[i];
+            arr[i] = temp;
+
+            heapify(arr, i, 0);
+        }
+    }
+
+    private static void heapify(int[] arr, int n, int i){
+        int parent = i;
+        int left = 2*i + 1;
+        int right = 2*i + 2;
+        if (left < n && arr[parent] < arr[left]){
+            parent = left;
+        }
+        if (right < n && arr[parent] < arr[right]){
+            parent = right;
+        }
+        if (parent != i){
+            int temp = arr[parent];
+            arr[parent] = arr[i];
+            arr[i] = temp;
+
+            heapify(arr, n, parent);
+        }
+    }
+
     static void insertionSort(int[] arr){
         for (int i = 0; i < arr.length - 1; i++){
             for (int j = i + 1; j < arr.length; j++){
