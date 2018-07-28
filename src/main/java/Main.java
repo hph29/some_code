@@ -4,7 +4,7 @@
 public class Main {
 
     public static void main(String[] args) {
-        sortRelated();
+        System.out.println(new CoinCombination().listNumCombination(new int[]{1,2},3));
     }
 
     private static void sortRelated(){
