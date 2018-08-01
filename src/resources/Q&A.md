@@ -183,3 +183,162 @@ If n is relatively small ( on the order of a hundred ~ ten thousand ), then the 
 9.  Train an SVM classifier on the MNIST dataset. Since SVM classifiers are binary classifiers, you will need to use  one-versus-all to classify all 10 digits. You may want to tune the hyperparameters using small validation sets to speed up the process. What accuracy can you reach?
     
 10.  Train an SVM regressor on the California housing  dataset.
+
+## Kafka 
+
+#### Message Model
+1. Messaging traditionally has two models: **queuing** and **publish-subscribe**. 
+
+2. In a queue, a pool of consumers may read from a server and each record goes to one of them;
+ 
+3. In publish-subscribe the record is broadcast to all consumers. 
+
+4. The strength of queuing is that it allows you to divide up the processing of data over multiple consumer instances, which lets you scale your processing. Unfortunately, queues aren't multi-subscriber—once one process reads the data it's gone. 
+
+5. Publish-subscribe allows you broadcast data to multiple processes, but has no way of scaling processing since every message goes to every subscriber.
+
+6. The consumer group concept in Kafka generalizes these two concepts. As with a queue the consumer group allows you to divide up processing over a collection of processes (the members of the consumer group). As with publish-subscribe, Kafka allows you to broadcast messages to multiple consumer groups.
+
+#### Ordering
+1. A traditional queue retains records in-order on the server, and if multiple consumers consume from the queue then the server hands out records in the order they are stored. 
+
+2. However, although the server hands out records in order, the records are delivered asynchronously to consumers, so they may arrive out of order on different consumers. This effectively means the ordering of the records is lost in the presence of parallel consumption. 
+
+3. Messaging systems often work around this by having a notion of "exclusive consumer" that allows only one process to consume from a queue, but of course this means that there is no parallelism in processing.
+
+4. Kafka only provides a total order over messages within a partition, not between different partitions in a topic.
+
+5. In Kafka, assigning the partitions in the topic to the consumers in the consumer group so that each partition is consumed by exactly one consumer in the group. By doing this we ensure that the consumer is the only reader of that partition and consumes the data in order.
+
+#### As Storage System
+
+1. Data written to Kafka is written to disk and replicated for fault-tolerance. 
+
+2. Kafka allows producers to wait on acknowledgement so that a write isn't considered complete until it is fully replicated and guaranteed to persist even if the server written to fails.
+
+3. The disk structures Kafka uses scale well—Kafka will perform the same whether you have 50 KB or 50 TB of persistent data on the server.
+   
+4. As a result of taking storage seriously and allowing the clients to control their read position, you can think of Kafka as a kind of special purpose distributed filesystem dedicated to high-performance, low-latency commit log storage, replication, and propagation.
+
+#### As Streaming System
+
+![](https://docs.confluent.io/current/_images/streams-architecture-overview.jpg)
+
+1. A **topology** is a graph of stream processors (nodes) that are connected by streams (edges).
+
+2. **Source Processor**: A source processor is a special type of stream processor that does not have any upstream processors. It produces an input stream to its topology from one or multiple Kafka topics by consuming records from these topics and forward them to its down-stream processors.
+
+3. **Sink Processor**: A sink processor is a special type of stream processor that does not have down-stream processors. It sends any received records from its up-stream processors to a specified Kafka topic.
+
+4. Kafka Streams provides two APIs to define stream processors:
+    - The declarative, functional DSL is the recommended API for most users – and notably for starters – because most data processing use cases can be expressed in just a few lines of DSL code. Here, you typically use built-in operations such as map and filter.
+    - The imperative, lower-level Processor API provides you with even more flexibility than the DSL but at the expense of requiring more manual coding work. Here, you can define and connect custom processors as well as directly interact with state stores.
+    
+5. Any stream processing technology must therefore provide **first-class support for streams and tables**.
+
+6. The **stream-table duality** describes the close relationship between streams and tables.
+   
+   - **Stream as Table**: A stream can be considered a changelog of a table, where each data record in the stream captures a state change of the table. A stream is thus a table in disguise, and it can be easily turned into a “real” table by replaying the changelog from beginning to end to reconstruct the table. Similarly, aggregating data records in a stream will return a table. For example, we could compute the total number of pageviews by user from an input stream of pageview events, and the result would be a table, with the table key being the user and the value being the corresponding pageview count.
+   - **Table as Stream**: A table can be considered a snapshot, at a point in time, of the latest value for each key in a stream (a stream’s data records are key-value pairs). A table is thus a stream in disguise, and it can be easily turned into a “real” stream by iterating over each key-value entry in the table.
+   
+7. A **KStream** is an abstraction of a **record stream**, where each data record represents a self-contained datum in the unbounded data set. Using the table analogy, data records in a record stream are always interpreted as an **“INSERT”**
+
+8. A **KTable** is an abstraction of a changelog stream, where each data record represents an update. More precisely, the value in a data record is interpreted as an **“UPSERT”**
+
+9. KTable also provides an ability to look up current values of data records by keys.
+
+10. Like a KTable, a **GlobalKTable** is an abstraction of a **changelog stream**, where each data record represents an update.
+    
+    A GlobalKTable differs from a KTable in the data that they are being populated with, i.e. which data from the underlying Kafka topic is being read into the respective table. Slightly simplified, imagine you have an input topic with 5 partitions. In your application, you want to read this topic into a table. Also, you want to run your application across 5 application instances for maximum parallelism.
+    
+    If you read the input topic into a KTable, then the “local” KTable instance of each application instance will be populated with data from only 1 partition of the topic’s 5 partitions.
+    If you read the input topic into a GlobalKTable, then the local GlobalKTable instance of each application instance will be populated with data from all partitions of the topic.
+    
+11. Kafka Streams supports the following notions of **time**:
+    - Event-time: The point in time when an event or data record occurred, i.e. was originally created “by the source”. 
+    - Processing-time: The point in time when the event or data record happens to be processed by the stream processing application
+    - Ingestion-time: The point in time when an event or data record is stored in a topic partition by a Kafka broker. 
+    
+## HBase
+
+1. **HBase** and **Hive** both are completely different Hadoop based technologies
+    - Hive is a data warehouse infrastructure on top of Hadoop, Hive helps SQL savvy people to run MapReduce jobs, Hive is an ideal choice for analytical querying of data collected over the period of time.
+    - HBase is a NoSQL key-value store that runs on top of Hadoop, HBase supports 4 primary operations-put, get, scan and delete. HBase is ideal for real-time querying of big data.
+    
+2. **Row key**: Every row in an HBase table has a unique identifier known as RowKey. It is used for grouping cells logically and it ensures that all cells that have the same RowKeys are co-located on the same server. RowKey is internally regarded as a byte array.
+
+3. RDBMS is a schema-based database whereas HBase is schema-less data model.
+   
+   RDBMS does not have support for in-built partitioning whereas in HBase there is automated partitioning.
+   
+   RDBMS stores normalized data whereas HBase stores de-normalized data.
+   
+4. Record Level Operational Commands in HBase are - put, get, increment, scan and delete.
+   
+   Table Level Operational Commands in HBase are - describe, list, drop, disable and scan.
+   
+5. There are two important catalog tables in HBase, are ROOT and META. ROOT table tracks where the META table is and META table stores all the regions in the system.
+
+6. On issuing a delete command in HBase through the HBase client, data is not actually deleted from the cells but rather the cells are made invisible by setting a tombstone marker. The deleted cells are removed at regular intervals during compaction.
+
+7. Explain about HLog and WAL in HBase. All edits in the HStore are stored in the HLog. Every region server has one HLog. HLog contains entries for edits of all regions performed by a particular Region Server.WAL abbreviates to Write Ahead Log (WAL) in which all the HLog edits are written immediately.WAL edits remain in the memory till the flush period in case of deferred log flush.
+
+8. The HFile is the underlying storage format for HBase. HFiles belong to a column family and a column family can have multiple HFiles. But a single HFile can’t have data for multiple column families
+
+## Spark
+
+1. Apache Spark is an open-source cluster computing framework for real-time processing.
+
+2. Multi-languages: scala, java, R and Python
+
+3. Support multiple format, data sources, pluggable data source connector 
+
+4. lazy evaluation, for transformation, spark add them to DAG of computation and only driver request data, DAG gets actually executed.
+
+5. RDD stands for Resilient Distribution Datasets. An RDD is a fault-tolerant collection of operational elements that run in parallel. The partitioned data in RDD is immutable and distributed in nature. There are primarily two types of RDD:
+   
+   - Parallelized Collections: Here, the existing RDDs running parallel with one another.
+   - Hadoop Datasets: They perform functions on each file record in HDFS or other storage systems.
+   
+6. Partition is a smaller and logical division of data similar to ‘split’ in MapReduce. It is a logical chunk of a large distributed data set. 
+
+7. Partitioning is the process to derive logical units of data to speed up the processing process. Spark manages data using partitions that help parallelize distributed data processing with minimal network traffic for sending data between executors. 
+
+8. By default, Spark tries to read data into an RDD from the nodes that are close to it. Since Spark usually accesses distributed partitioned data, to optimize transformation operations it creates partitions to hold the data chunks. Everything in Spark is a partitioned RDD.
+
+9. RDDs support two types of operations: transformations and actions. 
+   
+   - Transformations: Transformations create new RDD from existing RDD like map, reduceByKey and filter we just saw. Transformations are executed on demand. That means they are computed lazily.
+   
+   - Actions: Actions return final results of RDD computations. Actions triggers execution using lineage graph to load the data into original RDD, carry out all intermediate transformations and return final results to Driver program or write it out to file system.
+
+10. Spark Streaming is used for processing real-time streaming data. Thus it is a useful addition to the core Spark API. It enables high-throughput and fault-tolerant stream processing of live data streams. The fundamental stream unit is DStream which is basically a series of RDDs (Resilient Distributed Datasets) to process the real-time data.
+
+11. Spark does not support data replication in the memory and thus, if any data is lost, it is rebuild using RDD lineage. RDD lineage is a process that reconstructs lost data partitions. The best is that RDD always remembers how to build from other datasets.
+
+12. Spark SQL is capable of:
+    - Loading data from a variety of structured sources.
+    - Querying data using SQL statements, both inside a Spark program and from external tools that connect to Spark SQL through standard database connectors (JDBC/ODBC). For instance, using business intelligence tools like Tableau. 
+    - Providing rich integration between SQL and regular Python/Java/Scala code, including the ability to join RDDs and SQL tables, expose custom functions in SQL, and more. 
+    
+## Hive
+
+1. **Partitioning** and **Bucketing** of tables is done to improve the query performance. Partitioning helps execute queries faster, only if the partitioning scheme has some common range filtering i.e. either by timestamp ranges, by location, etc. Bucketing does not work by default.
+Partitioning helps eliminate data when used in WHERE clause. Bucketing helps organize data inside the partition into multiple files so that same set of data will always be written in the same bucket. Bucketing helps in joining various columns.
+In partitioning technique, a partition is created for every unique value of the column and there could be a situation where several tiny partitions may have to be created. However, with bucketing, one can limit it to a specific number and the data can then be decomposed in those buckets.
+Basically, a bucket is a file in Hive whereas partition is a directory.
+
+2. **External** table: 
+       
+    - External table stores files on the HDFS server but tables are not linked to the source file completely.
+    
+    - If you delete an external table the file still remains on the HDFS server.
+        
+    - External table files are accessible to anyone who has access to HDFS file structure and therefore security needs to be managed at the HDFS file/folder level.
+    
+    - Meta data is maintained on master node, and deleting an external table from HIVE only deletes the metadata not the data/file.
+    
+3. **Internal** table:
+    - Stored in a directory based on settings in hive.metastore.warehouse.dir, by default internal tables are stored in the following directory “/user/hive/warehouse” you can change it by updating the location in the config file .
+    - Deleting the table deletes the metadata and data from master-node and HDFS respectively.
+    - Internal table file security is controlled solely via HIVE. Security needs to be managed within HIVE, probably at the schema level (depends on organization).
